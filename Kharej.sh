@@ -20,4 +20,4 @@ sudo ip addr add 10.10.15.1/30 dev gre1
 # فعال‌سازی forwarding IPv4
 sudo sysctl -w net.ipv4.ip_forward=1
 
-echo "تنظیمات تونل با موفقیت انجام شد."
+echo ":(تنظیمات تونل با موفقیت انجام شد."
