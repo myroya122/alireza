@@ -4,20 +4,20 @@
 IP_FILE="/etc/tunnel_ip.txt"
 
 # بررسی وجود فایل آی‌پی و دریافت آی‌پی از کاربر
-if [ -f $IP_FILE ]; then
-    echo "آی‌پی قبلی موجود است: $(cat $IP_FILE)"
-    echo "آیا می‌خواهید آی‌پی جدید وارد کنید؟ (y/n)"
+#if [ -f $IP_FILE ]; then
+   # echo "آی‌پی قبلی موجود است: $(cat $IP_FILE)"
+   # echo "آیا می‌خواهید آی‌پی جدید وارد کنید؟ (y/n)"
     # read -t 5 RESPONSE
-    if [[ "$RESPONSE" == "y" || "$RESPONSE" == "Y" ]]; then
-        echo "لطفاً آی‌پی سرور 1 (سرور خارجی) را وارد کنید:"
-        read SERVER1_IP
-        echo $SERVER1_IP > $IP_FILE
-    fi
-else
-    echo "لطفاً آی‌پی سرور 1 (سرور خارجی) را وارد کنید:"
-    read SERVER1_IP
-    echo $SERVER1_IP > $IP_FILE
-fi
+  #  if [[ "$RESPONSE" == "y" || "$RESPONSE" == "Y" ]]; then
+     #   echo "لطفاً آی‌پی سرور 1 (سرور خارجی) را وارد کنید:"
+      #  read SERVER1_IP
+      #  echo $SERVER1_IP > $IP_FILE
+ #   fi
+#else
+   # echo "لطفاً آی‌پی سرور 1 (سرور خارجی) را وارد کنید:"
+  #  read SERVER1_IP
+  #  echo $SERVER1_IP > $IP_FILE
+#fi
 
 # مسیر فایل سرویس systemd
 SERVICE_PATH="/etc/systemd/system/tunnel_check.service"
