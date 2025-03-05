@@ -1,62 +1,62 @@
 #!/bin/bash
 
-# گرفتن آی‌پی سرور 1 (سرور خارجی)
-echo "لطفاً آی‌پی سرور 1 (سرور خارجی) را وارد کنید:"
-read SERVER1_IP
+# بررسی ماژول‌های لازم
+if ! lsmod | grep -q sit; then
+    modprobe sit
+fi
 
-# 1. حذف سرویس قبلی در صورت وجود
+if ! lsmod | grep -q ip6_gre; then
+    modprobe ip6_gre
+fi
+
+# فعال کردن IPv6 در صورت نیاز
+sysctl -w net.ipv6.conf.all.disable_ipv6=0
+
+# گرفتن آی‌پی سرور 2
+echo "لطفاً آی‌پی سرور 2 (سرور خارجی) را وارد کنید:"
+read SERVER2_IP
+
+# بررسی وضعیت تونل
+if ip link show tun6to4; then
+    echo "تونل قبلاً ایجاد شده است. در حال حذف تونل ..."
+    ip tunnel del tun6to4
+    ip tunnel del gre1
+fi
+
+# ایجاد تونل
+echo "در حال ایجاد تونل روی سرور 2 ..."
+ip tunnel add tun6to4 mode sit ttl 254 remote $SERVER2_IP
+ip link set tun6to4 up
+ip addr add fc01::2/64 dev tun6to4
+ip tunnel add gre1 mode ip6gre remote fc01::1 local fc01::2
+ip link set gre1 up
+ip addr add 10.10.15.2/30 dev gre1
+ip route add default via 10.10.15.1
+
+# فعال کردن مسیریابی IPv4
+sysctl -w net.ipv4.ip_forward=1
+
+# حذف سرویس قدیمی (در صورت وجود)
 echo "در حال حذف سرویس قبلی (در صورت وجود)..."
 systemctl stop tunnel_check.service
 systemctl disable tunnel_check.service
 rm -f /etc/systemd/system/tunnel_check.service
 
-# 2. حذف اسکریپت قبلی در صورت وجود
-echo "در حال حذف اسکریپت قبلی (در صورت وجود)..."
-rm -f /usr/local/bin/tunnel_check.sh
-
-# 3. ساخت اسکریپت بررسی و برقراری تونل
-echo "در حال ایجاد اسکریپت بررسی و برقراری تونل..."
-cat <<EOF > /usr/local/bin/tunnel_check.sh
-#!/bin/bash
-
-# بررسی وضعیت تونل
-TUNNEL_STATUS=\$(ip link show tun6to4 2>/dev/null)
-
-if [[ -z "\$TUNNEL_STATUS" ]]; then
-    echo "تونل یافت نشد. در حال برقراری تونل جدید..."
-    ip tunnel add tun6to4 mode sit ttl 254 remote \$SERVER1_IP
-    ip link set tun6to4 up
-    ip addr add fc01::2/64 dev tun6to4
-    ip tunnel add gre1 mode ip6gre remote fc01::1 local fc01::2
-    ip link set gre1 up
-    ip addr add 10.10.15.2/30 dev gre1
-    ip route add default via 10.10.15.1
-    sysctl -w net.ipv4.ip_forward=1
-else
-    echo "تونل قبلاً ایجاد شده است."
-fi
-EOF
-
-# دادن اجازه اجرا به اسکریپت
-chmod +x /usr/local/bin/tunnel_check.sh
-
-# 4. ایجاد فایل سرویس systemd
-echo "در حال ایجاد سرویس systemd..."
-cat <<EOF > /etc/systemd/system/tunnel_check.service
-[Unit]
-Description=بررسی و راه‌اندازی تونل
+# ایجاد سرویس systemd برای چک کردن تونل
+echo "[Unit]
+Description=Check Tunnel Status
+After=network.target
 
 [Service]
-ExecStart=/usr/local/bin/tunnel_check.sh $SERVER1_IP
+User=root
+ExecStart=/bin/bash /path/to/your/tunnel_creation_script.sh
 Restart=always
-RestartSec=300  # هر ۵ دقیقه یک‌بار اجرا شود
+RestartSec=300
 
 [Install]
-WantedBy=multi-user.target
-EOF
+WantedBy=multi-user.target" > /etc/systemd/system/tunnel_check.service
 
-# 5. بارگذاری مجدد سرویس‌ها و فعال‌سازی سرویس جدید
-echo "در حال فعال‌سازی سرویس..."
+# فعال‌سازی سرویس جدید
 systemctl daemon-reload
 systemctl enable tunnel_check.service
 systemctl start tunnel_check.service
