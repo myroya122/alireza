@@ -20,6 +20,7 @@ read SERVER1_IP
 if ip link show tun6to4; then
     echo "تونل قبلاً ایجاد شده است. در حال حذف تونل ..."
     ip tunnel del tun6to4
+    ip tunnel del gre1
 fi
 
 # ایجاد تونل
