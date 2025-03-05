@@ -40,7 +40,7 @@ After=network.target
 
 [Service]
 Type=simple
-ExecStart=/bin/bash -c "
+ExecStart=/bin/bash /root/kharej.sh
 # دریافت آی‌پی از فایل
 SERVER1_IP=\$(cat $IP_FILE)
 
