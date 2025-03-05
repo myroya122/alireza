@@ -7,7 +7,7 @@ IP_FILE="/etc/tunnel_ip.txt"
 if [ -f $IP_FILE ]; then
     echo "آی‌پی قبلی موجود است: $(cat $IP_FILE)"
     echo "آیا می‌خواهید آی‌پی جدید وارد کنید؟ (y/n)"
-    read -t 5 -p RESPONSE
+    read -t 5 RESPONSE
     if [[ "$RESPONSE" == "y" || "$RESPONSE" == "Y" ]]; then
         echo "لطفاً آی‌پی سرور 1 (سرور خارجی) را وارد کنید:"
         read SERVER1_IP
